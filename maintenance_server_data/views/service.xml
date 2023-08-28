@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- VIEWS -->
+    <record id="service_view_tree" model="ir.ui.view">
+        <field name="name">service.view.tree</field>
+        <field name="model">service</field>
+        <field name="arch" type="xml">
+            <tree string="Services" editable="top">
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="service_version_view_tree" model="ir.ui.view">
+        <field name="name">service.version.view.tree</field>
+        <field name="model">service.version</field>
+        <field name="arch" type="xml">
+            <tree string="Service versions" editable="top">
+                <field name="service_id" />
+                <field name="name" />
+                <field name="is_last_version" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="backup_server_view_tree" model="ir.ui.view">
+        <field name="name">backup.server.view.tree</field>
+        <field name="model">backup.server</field>
+        <field name="arch" type="xml">
+            <tree string="Backup Servers" editable="top">
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- ACTIONS -->
+    <record id="service_action" model="ir.actions.act_window">
+        <field name="name">Service</field>
+        <field name="res_model">service</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="service_view_tree" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new Service
+            </p>
+        </field>
+    </record>
+
+    <record id="service_version_action" model="ir.actions.act_window">
+        <field name="name">Service Version</field>
+        <field name="res_model">service.version</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="service_version_view_tree" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new Service Version
+            </p>
+        </field>
+    </record>
+
+    <record id="backup_server_action" model="ir.actions.act_window">
+        <field name="name">Backup server</field>
+        <field name="res_model">backup.server</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="backup_server_view_tree" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new Backup Server
+            </p>
+        </field>
+    </record>
+
+    <!-- MENUS -->
+    <menuitem
+        id="menu_maintenance_service"
+        name="Services"
+        parent="maintenance.menu_maintenance_configuration"
+        action="service_action"
+        sequence="4" />
+
+    <menuitem
+        id="menu_maintenance_service_version"
+        name="Service Versions"
+        parent="maintenance.menu_maintenance_configuration"
+        action="service_version_action"
+        sequence="5" />
+
+    <menuitem
+        id="menu_maintenance_backup_server"
+        name="Backup Servers"
+        parent="maintenance.menu_maintenance_configuration"
+        action="backup_server_action"
+        sequence="5" />
+
+</odoo>

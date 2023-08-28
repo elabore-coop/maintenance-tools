@@ -1,0 +1,11 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+os_distribution_user,os_distribution_user,model_os_distribution,base.group_user,1,0,0,0
+os_distribution_manager,os_distribution_manager,model_os_distribution,maintenance.group_equipment_manager,1,1,1,1
+service_user,service_user,model_service,base.group_user,1,0,0,0
+service_manager,service_manager,model_service,maintenance.group_equipment_manager,1,1,1,1
+service_version_user,service_version_user,model_service_version,base.group_user,1,0,0,0
+service_version_manager,service_version_manager,model_service_version,maintenance.group_equipment_manager,1,1,1,1
+service_instance_user,service_instance_user,model_service_instance,base.group_user,1,0,0,0
+service_instance_manager,service_instance_manager,model_service_instance,maintenance.group_equipment_manager,1,1,1,1
+backup_server_user,backup_server_user,model_backup_server,base.group_user,1,0,0,0
+backup_server_manager,backup_server_manager,model_backup_server,maintenance.group_equipment_manager,1,1,1,1

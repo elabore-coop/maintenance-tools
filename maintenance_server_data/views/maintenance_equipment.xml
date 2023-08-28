@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="equipment_view_form_server_inherit" model="ir.ui.view">
+        <field name="name">equipment.form.server.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='effective_date']/.." position="after">
+                <group name="server_data" string="Server data">
+                    <field name="server_ip" />
+                    <field name="hosting_city" />
+                    <field name="distribution_id" />
+                    <field name="nb_cores" />
+                    <field name="ram" />
+                    <field name="disk_storage" />
+                </group>
+                <group name="backup_data" string="Backup data">
+                    <field name="backup_activated" />
+                    <field name="backup_server_id" />
+                    <field name="backup_ok" />
+                </group>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="services" string="Services">
+                    <field name="service_ids" nolabel="1">
+                        <tree create="true" delete="true" editable="top">
+                            <field name="service_id" />
+                            <field name="version_id" domain="[('service_id', '=', service_id)]" />
+                            <field name="service_url" />
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="equipment_view_tree_server_inherit" model="ir.ui.view">
+        <field name="name">equipment.tree.server.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="server_ip" optional="hide" />
+                <field name="hosting_city" optional="hide" />
+                <field name="distribution_id" optional="hide" />
+                <field name="nb_cores" optional="hide" />
+                <field name="ram" optional="hide" />
+                <field name="disk_storage" optional="hide" />
+                <field name="backup_activated" optional="hide" />
+                <field name="backup_server_id" optional="hide" />
+                <field name="backup_ok" optional="hide" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

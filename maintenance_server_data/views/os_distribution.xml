@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="os_distribution_view_tree" model="ir.ui.view">
+        <field name="name">os.distribution.view.tree</field>
+        <field name="model">os.distribution</field>
+        <field name="arch" type="xml">
+            <tree string="OS Distributions" editable="top">
+                <field name="distrib_name" />
+                <field name="distrib_version" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="os_distribution_action" model="ir.actions.act_window">
+        <field name="name">OS Distribution</field>
+        <field name="res_model">os.distribution</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="os_distribution_view_tree" />
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new OS Distribution
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_maintenance_os_distribution"
+        name="OS Distributions"
+        parent="maintenance.menu_maintenance_configuration"
+        action="os_distribution_action"
+        sequence="3" />
+
+</odoo>
