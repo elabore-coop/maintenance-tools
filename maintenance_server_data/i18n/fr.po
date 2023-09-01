@@ -1,0 +1,272 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* maintenance_server_data
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-01 09:46+0000\n"
+"PO-Revision-Date: 2023-09-01 09:46+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: maintenance_server_data
+#: model_terms:ir.actions.act_window,help:maintenance_server_data.backup_server_action
+msgid "Add a new Backup Server"
+msgstr "Ajouter un nouveau serveur de sauvegardes"
+
+#. module: maintenance_server_data
+#: model_terms:ir.actions.act_window,help:maintenance_server_data.os_distribution_action
+msgid "Add a new OS Distribution"
+msgstr "Ajouter une nouvelle distribution de système d'exploitation"
+
+#. module: maintenance_server_data
+#: model_terms:ir.actions.act_window,help:maintenance_server_data.service_action
+msgid "Add a new Service"
+msgstr "Ajouter un nouveau service"
+
+#. module: maintenance_server_data
+#: model_terms:ir.actions.act_window,help:maintenance_server_data.service_version_action
+msgid "Add a new Service Version"
+msgstr "Ajouter une nouvelle version de service"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__backup_activated
+msgid "Backup Activated ?"
+msgstr "Backup activé ?"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__backup_ok
+msgid "Backup OK ?"
+msgstr ""
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__backup_server_id
+msgid "Backup Server"
+msgstr "Serveur de sauvegarde"
+
+#. module: maintenance_server_data
+#: model:ir.ui.menu,name:maintenance_server_data.menu_maintenance_backup_server
+#: model_terms:ir.ui.view,arch_db:maintenance_server_data.backup_server_view_tree
+msgid "Backup Servers"
+msgstr "Serveurs de sauvegarde"
+
+#. module: maintenance_server_data
+#: model_terms:ir.ui.view,arch_db:maintenance_server_data.equipment_view_form_server_inherit
+msgid "Backup data"
+msgstr "Donnée de sauvegardes"
+
+#. module: maintenance_server_data
+#: model:ir.actions.act_window,name:maintenance_server_data.backup_server_action
+msgid "Backup server"
+msgstr "Serveur de sauvegarde"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_backup_server__create_uid
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__create_uid
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service__create_uid
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__create_uid
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_backup_server__create_date
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__create_date
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service__create_date
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__create_date
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__disk_storage
+msgid "Disk Storage (Go)"
+msgstr "Stockage mémoire (Go)"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_backup_server__display_name
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__display_name
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__display_name
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service__display_name
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__display_name
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__distrib_name
+msgid "Distrib Name"
+msgstr "Nom de la distribution"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__distrib_version
+msgid "Distrib Version"
+msgstr "Version de la distribution"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__distribution_id
+msgid "Distribution"
+msgstr "Distribution"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__equipment_id
+msgid "Equipment"
+msgstr "Équipement"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__hosting_city
+msgid "Hosting City"
+msgstr "Ville d'hébergement"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_backup_server__id
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__id
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__id
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service__id
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__id
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__id
+msgid "ID"
+msgstr ""
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__is_last_version
+msgid "Is Last Version?"
+msgstr "Est la dernière version ?"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_backup_server____last_update
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment____last_update
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution____last_update
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service____last_update
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance____last_update
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version____last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_backup_server__write_uid
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__write_uid
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service__write_uid
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__write_uid
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_backup_server__write_date
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__write_date
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service__write_date
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__write_date
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: maintenance_server_data
+#: model:ir.model,name:maintenance_server_data.model_maintenance_equipment
+msgid "Maintenance Equipment"
+msgstr "Equipement de maintenance"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_backup_server__name
+#: model:ir.model.fields,field_description:maintenance_server_data.field_os_distribution__name
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service__name
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__nb_cores
+msgid "Nb Cores"
+msgstr "Nb coeurs"
+
+#. module: maintenance_server_data
+#: model:ir.actions.act_window,name:maintenance_server_data.os_distribution_action
+msgid "OS Distribution"
+msgstr "Système d'exploitation"
+
+#. module: maintenance_server_data
+#: model:ir.ui.menu,name:maintenance_server_data.menu_maintenance_os_distribution
+#: model_terms:ir.ui.view,arch_db:maintenance_server_data.os_distribution_view_tree
+msgid "OS Distributions"
+msgstr "Systèmes d'exploitation"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__ram
+msgid "RAM (Go)"
+msgstr ""
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__server_ip
+msgid "Server Ip Address"
+msgstr "Adresse IP"
+
+#. module: maintenance_server_data
+#: model_terms:ir.ui.view,arch_db:maintenance_server_data.equipment_view_form_server_inherit
+msgid "Server data"
+msgstr "Informations sur le serveur"
+
+#. module: maintenance_server_data
+#: model:ir.actions.act_window,name:maintenance_server_data.service_action
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__service_id
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_version__service_id
+msgid "Service"
+msgstr "Service"
+
+#. module: maintenance_server_data
+#: model:ir.actions.act_window,name:maintenance_server_data.service_version_action
+msgid "Service Version"
+msgstr "Version du service"
+
+#. module: maintenance_server_data
+#: model:ir.ui.menu,name:maintenance_server_data.menu_maintenance_service_version
+msgid "Service Versions"
+msgstr "Version du service"
+
+#. module: maintenance_server_data
+#: model_terms:ir.ui.view,arch_db:maintenance_server_data.service_version_view_tree
+msgid "Service versions"
+msgstr "Versions des services"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_maintenance_equipment__service_ids
+#: model:ir.ui.menu,name:maintenance_server_data.menu_maintenance_service
+#: model_terms:ir.ui.view,arch_db:maintenance_server_data.equipment_view_form_server_inherit
+#: model_terms:ir.ui.view,arch_db:maintenance_server_data.service_view_tree
+msgid "Services"
+msgstr "Services"
+
+#. module: maintenance_server_data
+#: model:ir.model.fields,field_description:maintenance_server_data.field_service_instance__version_id
+msgid "Version"
+msgstr "Version"
+
+#. module: maintenance_server_data
+#: model:ir.model,name:maintenance_server_data.model_backup_server
+msgid "backup.server"
+msgstr ""
+
+#. module: maintenance_server_data
+#: model:ir.model,name:maintenance_server_data.model_os_distribution
+msgid "os.distribution"
+msgstr ""
+
+#. module: maintenance_server_data
+#: model:ir.model,name:maintenance_server_data.model_service
+msgid "service"
+msgstr ""
+
+#. module: maintenance_server_data
+#: model:ir.model,name:maintenance_server_data.model_service_instance
+msgid "service.instance"
+msgstr "Instance du service"
+
+#. module: maintenance_server_data
+#: model:ir.model,name:maintenance_server_data.model_service_version
+msgid "service.version"
+msgstr ""
