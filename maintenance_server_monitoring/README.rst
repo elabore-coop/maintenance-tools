@@ -1,14 +1,14 @@
 ======================================
-maintenance_server_data
+maintenance_server_monitoring
 ======================================
 
-Gather several identification data about the servers to maintain.
+Monitor some data on remote hosts
 
 Installation
 ============
 
 Use Odoo normal module installation procedure to install
-``maintenance_server_data``.
+``maintenance_server_monitoring``.
 
 Known issues / Roadmap
 ======================
@@ -29,7 +29,7 @@ Credits
 Contributors
 ------------
 
-* Stéphan Sainléger
+* Clément Thomas
 
 Funders
 -------
