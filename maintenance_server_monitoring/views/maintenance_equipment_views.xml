@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="equipment_view_form_server_inherit" model="ir.ui.view">
+        <field name="name">equipment.form.server.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form" />
+        <field name="arch" type="xml">            
+            <xpath expr="//notebook" position="inside">
+                <page name="monitoring" string="Monitoring">
+                    <group name="monitoring" string="Configuration">
+                        <field name="server_domain" />
+                        <field name="ssh_private_key_path" />                                                
+                    </group>
+                    <group name="monitoring_test" string="Test">
+                        <field name="last_monitoring_test_date" />
+                        <field name="ping_ok" />  
+                        <field name="available_memory_percent" />                          
+                        <button name="monitoring_test" type="object" string="Test" />
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="equipment_view_tree_server_inherit" model="ir.ui.view">
+        <field name="name">equipment.tree.server.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="server_domain" optional="hide" />
+                <field name="ping_ok" optional="hide" />  
+            </xpath>
+        </field>
+    </record>
+</odoo>
