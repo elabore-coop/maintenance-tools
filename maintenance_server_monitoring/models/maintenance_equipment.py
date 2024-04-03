@@ -96,7 +96,7 @@ class MaintenanceEquipment(models.Model):
 
             tests = []
 
-            #PIP dependant test
+            #install dependencies and log it
             log.write(equipment.install_dependencies().log) # launch_test is not used, only logs are necessary
 
             #run ping test
