@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
-    "name": "maintenance_server_monitoring",
+    "name": "maintenance_server_ssh",
     "version": "16.0.1.0.0",
     "author": "Elabore",
     "website": "https://elabore.coop",
@@ -14,7 +14,6 @@
     "depends": [
         "base",
         "maintenance",
-        "maintenance_server_ssh"
     ],
     "qweb": [
         # "static/src/xml/*.xml",
@@ -25,7 +24,6 @@
     # always loaded
     "data": [        
         "views/maintenance_equipment_views.xml",        
-        "data/cron.xml",        
     ],
     # only loaded in demonstration mode
     "demo": [],
