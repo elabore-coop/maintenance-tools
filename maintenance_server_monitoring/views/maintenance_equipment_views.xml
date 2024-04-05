@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="equipment_view_form_server_inherit" model="ir.ui.view">
+        <field name="name">equipment.form.server.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form" />
+        <field name="arch" type="xml">            
+            <xpath expr="//notebook" position="inside">
+                <page name="monitoring" string="Monitoring">                    
+                    <group name="monitoring_test" string="Test">
+                        <field name="enable_monitoring" />
+                        <field name="last_monitoring_test_date" />
+                        <field name="ping_ok" />  
+                        <field name="ssh_ok" />  
+                        <field name="available_memory_percent" />    
+                        <field name="used_disk_space" />    
+                        <button name="monitoring_test" type="object" string="Test" />
+                    </group>
+                    <group name="monitoring_log" string="Log">
+                        <field name="log" />
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="equipment_view_tree_server_inherit" model="ir.ui.view">
+        <field name="name">equipment.tree.server.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after"> 
+                <field name="enable_monitoring" />
+                <field name="ping_ok" optional="hide" />  
+                <field name="ssh_ok" />  
+                <field name="available_memory_percent" optional="hide" />    
+                <field name="used_disk_space" optional="hide" />    
+            </xpath>
+        </field>
+    </record>
+</odoo>
