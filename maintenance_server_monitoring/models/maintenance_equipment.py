@@ -4,6 +4,8 @@ import sys
 import psutil
 from io import StringIO
 
+LOG_LIMIT = 100000
+
 AVAILABLE_MEMORY_PERCENT_COMMAND = "free | grep Mem | awk '{print $3/$2 * 100.0}'"
 MIN_AVAILABLE_MEMORY_PERCENT_WARNING = 20
 MIN_AVAILABLE_MEMORY_PERCENT_ERROR = 5
@@ -23,6 +25,7 @@ if you want to add a new test :
         -> log = logs you want to appear in logs
         -> result = value which will be set to {fieldname}
         -> error = MonitoringTest.ERROR or MonitoringTest.WARNING to generate maintenance request
+        ** Note you can use test_ok, test_warning, and test_error functions to simplify code **
     * add requirements if necessary in install_dependencies function
     * call your function in monitoring_test() with a simple launch_test({fieldname}, *args)
         if needed, *args can be passed by parameters to your test function
@@ -35,10 +38,17 @@ class MaintenanceEquipment(models.Model):
     _inherit = 'maintenance.equipment'
     
     last_monitoring_test_date = fields.Datetime('Date of last monitoring test', readonly=True)
+
+    #tests
     ping_ok = fields.Boolean("Ping ok", readonly=True)
     available_memory_percent = fields.Float('Percent of available memory', readonly=True)
     used_disk_space = fields.Float('Percent of used disk space', readonly=True)
+    ssh_ok = fields.Boolean("SSH ok", readonly=True)
+
+    #log
     log = fields.Html("Log", readonly=True)
+
+    #maintenance requests
     error_maintenance_request = fields.Many2one('maintenance.request', "Error maintenance request")
     warning_maintenance_request = fields.Many2one('maintenance.request', "Warning maintenance request")
 
@@ -50,17 +60,64 @@ class MaintenanceEquipment(models.Model):
         ERROR = "error"
 
         def __init__(self, name):
-            self.name = name #name of the test
-            self.result = 0 #result of the test
-            self.log = "" #logs of the test
-            self.date = fields.Datetime.now() #date of the test
-            self.error = "" #errors of the test
+            self.name = name # name of the test
+            self.result = 0 # result of the test
+            self.log = "" # logs of the test
+            self.date = fields.Datetime.now() # date of the test
+            self.error = "" # errors of the test
 
         def add_to_log(self, text):   
             """
                 add a new line to logs composed with DATE > TEST NAME > WHAT TO LOG
             """     
             self.log += f"{self.date} > {self.name} > {text}\n"
+
+        def test_ok(self, result, log):
+            """to call when the test is ok.
+            It just fill the test with result and embellished log
+
+            Args:
+                result: result of test
+                log (string): what to log
+
+            Returns:
+                MonitoringTest: filled test
+            """
+            self.add_to_log(log)
+            self.result = result
+            return self
+        
+        def test_error(self, result, log):
+            """to call when test error.
+            It just fill the test with result, embellished log and set error value to ERROR
+
+            Args:
+                result: result of test
+                log (string): what to log
+
+            Returns:
+                MonitoringTest: filled test
+            """
+            self.add_to_log(f"🚨 ERROR : {log}")
+            self.result = result
+            self.error = self.ERROR
+            return self
+        
+        def test_warning(self, result, log):
+            """to call when test warning.
+            It just fill the test with result, embellished log and set error value to WARNING
+
+            Args:
+                result: result of test
+                log (string): what to log
+
+            Returns:
+                MonitoringTest: filled test
+            """
+            self.add_to_log(f"🔥 WARNING : {log}")
+            self.result = result
+            self.error = self.WARNING
+            return self
         
     @api.model
     def cron_monitoring_test(self):
@@ -91,45 +148,43 @@ class MaintenanceEquipment(models.Model):
 
 
         for equipment in self:
-            #clear log            
-            log = StringIO() #we use StingIO instead of string to use mutable object 
+            
+            # we use StingIO instead of string to use mutable object 
+            log = StringIO() 
 
+            # array of all tests
             tests = []
 
-            #install dependencies and log it
+            # install dependencies and log it
             log.write(equipment.install_dependencies().log) # launch_test is not used, only logs are necessary
 
-            #run ping test
+            # run ping test
             launch_test("ping_ok")
 
-            #SSH dependant test
-            try:
-                ssh = self.get_ssh_connection() #ssh connection given by maintenance_server_ssh module
-            except Exception as e:
-                ssh = False
-                log.write(f"{fields.Datetime.now()} > SSH > connection failed {e}\n")
+            # SSH dependant test
+            ssh = launch_test("ssh_ok").result
                 
             
             if ssh:
-                #test available memory
+                # test available memory
                 launch_test("available_memory_percent", ssh)         
 
-                #test disk usage
+                # test disk usage
                 launch_test("used_disk_space", ssh)
             else:
                 equipment.available_memory_percent = -1 #set -1 by convention if error
                 equipment.used_disk_space = -1 #set -1 by convention if error         
 
-            #set test date
+            # set test date
             equipment.last_monitoring_test_date = fields.Datetime.now()
             
-            #write logs
+            # write logs
             log.seek(0) #log is a StringIO so seek to beginning before read
             new_log = f'📣 {fields.Datetime.now()}\n{log.read()}\n'   
             new_log = new_log.replace("\n","<br />") # log field is HTML, so format lines 
-            equipment.log = f'{new_log}<br />{equipment.log}'[:10000] #limit logs to 10000 characters
+            equipment.log = f'{new_log}<br />{equipment.log}'[:LOG_LIMIT] #limit logs 
 
-            #if error create maintenance request
+            # if error create maintenance request
             error = warning =False
             if any(test.error == test.ERROR for test in tests):
                 error = True # if any arror in tests
@@ -137,10 +192,16 @@ class MaintenanceEquipment(models.Model):
                 warning = True # if any warning in tests
 
             if error or warning:                
-                # check if error or warning request already exists before creating a new one
-                # if only a warning exists, error request will be created anyway
-                if (error and not equipment.error_maintenance_request) \
-                    or (warning and not equipment.warning_maintenance_request and not equipment.error_maintenance_request):
+                # check if error or warning request (not done) already exists before creating a new one
+                # if only a warning request exists, error request will be created anyway
+                existing_not_done_error_request = None
+                existing_not_done_warning_request = None
+                if equipment.error_maintenance_request and not equipment.error_maintenance_request.stage_id.done:
+                    existing_not_done_error_request = equipment.error_maintenance_request
+                if equipment.warning_maintenance_request and not equipment.warning_maintenance_request.stage_id.done:
+                    existing_not_done_warning_request = equipment.warning_maintenance_request
+                if (error and not existing_not_done_error_request) \
+                    or (warning and not existing_not_done_warning_request and not existing_not_done_error_request):
                     maintenance_request = self.env['maintenance.request'].create({
                         "name":f'[{"ERROR" if error else "WARNING"}] {equipment.name}',
                         "equipment_id":equipment.id, 
@@ -167,28 +228,37 @@ class MaintenanceEquipment(models.Model):
         """        
         monitoring_test = self.MonitoringTest("install dependencies")
         if "ping3" in sys.modules:
-            monitoring_test.add_to_log("ping3 already satisfied")
-            monitoring_test.result = 0
-        else:
-            error = True
+            return monitoring_test.test_ok(0, "ping3 already installed")            
+        else:            
             try:
                 command = ['pip','install',"ping3"]
                 response = subprocess.call(command) # run "pip install ping3" command
                 if response == 0:
-                    error = False
-            except Exception as e:
-                error = str(e)
-                
-            if error:
-                monitoring_test.add_to_log(f"🚨 ping3 : unable to install : {error}")
-                monitoring_test.result = -1
-                monitoring_test.error = monitoring_test.ERROR
-            else:
-                monitoring_test.add_to_log("ping3 installation successful")
-                monitoring_test.result = 0
-        
-        return monitoring_test
-    
+                    return monitoring_test.test_ok(0, "ping3 installation successful")  
+                else:
+                    monitoring_test.test_error(f"ping3 : unable to install : response = {response}")          
+            except Exception as e:                
+                return monitoring_test.test_error(f"ping3 : unable to install : {e}")
+            
+    def test_ssh_ok(self):    
+        """
+            test ssh with maintenance_server_ssh module
+
+            Returns:
+                MonitoringTest: representing current test with :
+                    * result = False if error
+                    * result = ssh connection if no error
+                    * error = MonitoringTest.ERROR if connection failed
+                    * log file
+        """   
+        test = self.MonitoringTest("SSH OK")         
+        try:
+            # SSH connection ok : set ssh connection in result, converted in boolean (True) when set in ssh_ok field
+            return test.test_ok(self.get_ssh_connection(), "SSH Connection OK") #ssh connection given by maintenance_server_ssh module            
+        except Exception as e:
+            # SSH connection failed
+            return test.test_error(False, f"{fields.Datetime.now()} > SSH > connection failed {e}\n")
+            
     
     def test_available_memory_percent(self, ssh):    
         """
@@ -201,26 +271,25 @@ class MaintenanceEquipment(models.Model):
                 MonitoringTest: representing current test with :
                     * result = -2 if error
                     * result = percent of available memory if no error
-                    * error defined with ERROR or WARNING depending on result comparaison 
+                    * error defined with MonitoringTest.ERROR or MonitoringTest.WARNING depending on result comparaison 
                         with MIN_AVAILABLE_MEMORY_PERCENT_WARNING and MIN_AVAILABLE_MEMORY_PERCENT_ERROR
                     * log file
         """      
         try:      
             test = self.MonitoringTest("Available memory percent")      
             _stdin, stdout, _stderr = ssh.exec_command(AVAILABLE_MEMORY_PERCENT_COMMAND)
-            test.result = float(stdout.read().decode())
-            if test.result > MIN_AVAILABLE_MEMORY_PERCENT_WARNING:
-                test.add_to_log(f"OK : {test.result}% available")
-            elif test.result > MIN_AVAILABLE_MEMORY_PERCENT_ERROR: #memory between warning and error step
-                test.add_to_log(f"🔥 WARNING : {test.result}% available")
-                test.error = test.WARNING                
+            available_memory_percent = float(stdout.read().decode())
+            if available_memory_percent > MIN_AVAILABLE_MEMORY_PERCENT_WARNING:                
+                return test.test_ok(available_memory_percent, f"{available_memory_percent}% available")
+            elif available_memory_percent > MIN_AVAILABLE_MEMORY_PERCENT_ERROR: 
+                # memory between warning and error step
+                return test.test_warning(available_memory_percent, f"{available_memory_percent}% available (<{MIN_AVAILABLE_MEMORY_PERCENT_WARNING})")                
             else:
-                test.add_to_log(f"🚨 ERROR : {test.result}% available") #memory available lower than error step
-                test.error = test.ERROR
+                # memory available lower than error step
+                return test.test_error(available_memory_percent, f"{available_memory_percent}% available (<{MIN_AVAILABLE_MEMORY_PERCENT_ERROR})")
         except Exception as e:
-            test.result = -2
-            test.add_to_log(f"🚨 ERROR : {e}")
-        return test
+            return test.test_error(-2, f"{e}")
+        
 
         
     def test_used_disk_space(self, ssh):        
@@ -234,28 +303,26 @@ class MaintenanceEquipment(models.Model):
                 MonitoringTest: representing current test with :
                     * result = -2 if error
                     * result = percent of Used disk space if no error
-                    * error defined with ERROR or WARNING depending on result comparaison 
+                    * error defined with MonitoringTest.ERROR or MonitoringTest.WARNING depending on result comparaison 
                         with MAX_USED_DISK_SPACE_WARNING and MAX_USED_DISK_SPACE_ERROR
                     * log file
         """      
         try:
             test = self.MonitoringTest("Used disk space")      
             _stdin, stdout, _stderr = ssh.exec_command(USED_DISK_SPACE_COMMAND)
-            test.result = float(stdout.read().decode())                    
-            if test.result < MAX_USED_DISK_SPACE_WARNING:
-                test.add_to_log(f"OK : {test.result}% used")
-            elif test.result < MAX_USED_DISK_SPACE_ERROR:
-                test.add_to_log(f"🔥 WARNING : {test.result}% used") # disk usage between WARNING and ERROR steps
-                test.error = test.WARNING
+            used_disk_space = float(stdout.read().decode())                    
+            if used_disk_space < MAX_USED_DISK_SPACE_WARNING:
+                return test.test_ok(used_disk_space, f"{used_disk_space}% used")                
+            elif used_disk_space < MAX_USED_DISK_SPACE_ERROR:
+                # disk usage between WARNING and ERROR steps
+                return test.test_warning(used_disk_space, f"{used_disk_space}% used (>{MAX_USED_DISK_SPACE_WARNING})")                
             else:
-                test.add_to_log(f"🚨 ERROR : {test.result}% used") # disk usage higher than ERROR steps
-                test.error = test.ERROR
-                
+                # disk usage higher than ERROR steps
+                return test.test_error(used_disk_space, f"{used_disk_space}% used (>{MAX_USED_DISK_SPACE_ERROR})")                
+                                
         except Exception as e:
-            test.result = -2
-            test.add_to_log(f"🚨 ERROR : {e}")            
-        return test
-        
+            return test.test_error(-2, f"{e}")                
+    
     
     def test_ping_ok(self):
         """
@@ -265,39 +332,41 @@ class MaintenanceEquipment(models.Model):
                 MonitoringTest: representing current test with :
                     * result = False if error
                     * result = True if no error
-                    * error defined with ERROR or WARNING depending on ping time comparaison 
+                    * error defined with MonitoringTest.ERROR or MonitoringTest.WARNING depending on ping time comparaison 
                         with MAX_PING_MS_WARNING and MAX_PING_MS_ERROR
                     * log file
         """   
         test = self.MonitoringTest("Ping")
         try:               
             from ping3 import ping
-        except Exception as e:            
-            test.result = False
-            test.add_to_log(f"🚨 ping3 dependencie not satisfied : {e}")
-            test.error = test.ERROR
-            return
+        except Exception as e:
+            # unable to import ping3
+            return test.test_error(False, f"ping3 dependencie not satisfied : {e}")               
         
         hostname = self.server_domain
+        if not hostname:
+            # equipment host name not filled 
+            return test.test_error(False, f"host name seems empty !")             
+
         try:
             r = ping(hostname)
         except Exception as e: 
-            test.result = False
-            test.error = test.ERROR
-            test.add_to_log(f"🚨 unable to call ping ! > {e}")  
+            # Any problem when call ping
+            return test.test_error(False, f"unable to call ping ! > {e}")             
+           
         if r:
             test.result = True
             ping_ms = int(r*1000)
-            if ping_ms < MAX_PING_MS_WARNING:
-                test.add_to_log("PING OK in "+str(ping_ms)+"ms")
-            elif ping_ms < MAX_PING_MS_ERROR:
-                test.add_to_log("🔥 WARNING : PING OK in "+str(ping_ms)+"ms")            
-                test.error = test.WARNING
+            if ping_ms < MAX_PING_MS_WARNING:     
+                # ping OK           
+                return test.test_ok(True, f"PING OK in {ping_ms} ms")             
+            elif ping_ms < MAX_PING_MS_ERROR:                
+                # ping result between WARNING and ERROR => WARNING
+                return test.test_warning(True, f"PING OK in {ping_ms}ms (> {MAX_PING_MS_WARNING})")             
             else:
-                test.add_to_log("🚨 ERROR : PING OK in "+str(ping_ms)+"ms")
-                test.error = test.ERROR
-        else:   
-            test.result = False
-            test.error = test.ERROR
-            test.add_to_log("🚨 PING FAILED")        
-        return test
+                # ping result higher than ERROR => ERROR
+                return test.test_error(False, f"PING OK in {ping_ms}ms (> {MAX_PING_MS_ERROR})")                             
+        else:  
+            return test.test_error(False, "PING FAILED")                              
+            
+        

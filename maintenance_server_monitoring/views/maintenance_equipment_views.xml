@@ -10,6 +10,7 @@
                     <group name="monitoring_test" string="Test">
                         <field name="last_monitoring_test_date" />
                         <field name="ping_ok" />  
+                        <field name="ssh_ok" />  
                         <field name="available_memory_percent" />    
                         <field name="used_disk_space" />    
                         <button name="monitoring_test" type="object" string="Test" />
@@ -30,6 +31,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after">                
                 <field name="ping_ok" optional="hide" />  
+                <field name="ssh_ok" />  
                 <field name="available_memory_percent" optional="hide" />    
                 <field name="used_disk_space" optional="hide" />    
             </xpath>
