@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="maintenance_equipment_status_view_form_inherit" model="ir.ui.view">
+        <field name="name">maintenance.equipment.status.form.inherit</field>
+        <field name="model">maintenance.equipment.status</field>
+        <field name="inherit_id" ref="maintenance_equipment_status.maintenance_equipment_status_view_form" />
+        <field name="arch" type="xml">
+            <group name="notes" position="after">
+                <group name="monitoring">
+                    <field name="is_warning_status" />
+                    <field name="is_error_status" />
+                </group>
+            </group>
+        </field>
+    </record>
+
+    <record id="maintenance_equipment_status_view_tree_inherit" model="ir.ui.view">
+        <field name="name">maintenance.equipment.status.tree.inherit</field>
+        <field name="model">maintenance.equipment.status</field>
+        <field name="inherit_id" ref="maintenance_equipment_status.maintenance_equipment_status_view_tree" />
+        <field name="arch" type="xml">
+            <field name="category_ids" position="after">
+                <field name="is_warning_status" />
+                <field name="is_error_status" />
+            </field>
+        </field>
+    </record>
+    
+</odoo>

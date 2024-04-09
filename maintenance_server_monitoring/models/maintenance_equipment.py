@@ -59,7 +59,7 @@ class MaintenanceEquipment(models.Model):
         """Class to make the tests
         """
         WARNING = "warning"
-        ERROR = "error"
+        ERROR = "error"        
 
         def __init__(self, name):
             self.name = name # name of the test
@@ -208,22 +208,40 @@ class MaintenanceEquipment(models.Model):
                     existing_not_done_warning_request = equipment.warning_maintenance_request
                 if (error and not existing_not_done_error_request) \
                     or (warning and not existing_not_done_warning_request and not existing_not_done_error_request):
-                    maintenance_request = self.env['maintenance.request'].create({
-                        "name":f'[{"ERROR" if error else "WARNING"}] {equipment.name}',
-                        "equipment_id":equipment.id,                         
-                        "user_id":equipment.technician_user_id.id,
-                        "maintenance_team_id":equipment.maintenance_team_id.id or self.env["maintenance.team"].search([], limit=1),
-                        "priority":'2' if error else '3',
-                        "maintenance_type":"corrective" if error else "preventive", 
-                        "description":new_log
-                    })
-                    if error:
-                        equipment.error_maintenance_request = maintenance_request
-                    else:
-                        equipment.warning_maintenance_request = maintenance_request
-                
+                    equipment.create_maintenance_request(self.MonitoringTest.ERROR if error else self.MonitoringTest.WARNING, new_log)            
+            else:                
+                self.no_error()
 
+
+    def create_maintenance_request(self, error_level, description):
+        """create a maintenance request for equipment (self)
+
+        Args:
+            error_level (string): MonitoringTest.ERROR or MonitoringTest.WARNING
+            description (string): description of maintenance request
+        """
+        maintenance_request = self.env['maintenance.request'].create({
+            "name":f'[{error_level.upper()}] {self.name}',
+            "equipment_id":self.id,                         
+            "user_id":self.technician_user_id.id,
+            "maintenance_team_id":self.maintenance_team_id.id or self.env["maintenance.team"].search([], limit=1),
+            "priority":'2' if error_level == self.MonitoringTest.ERROR else '3',
+            "maintenance_type":"corrective" if error_level == self.MonitoringTest.ERROR else "preventive", 
+            "description":description
+        })
+        if error_level == self.MonitoringTest.ERROR:
+            self.error_maintenance_request = maintenance_request
+            self.warning_maintenance_request = None
+        else:
+            self.warning_maintenance_request = maintenance_request
+            self.error_maintenance_request = None    
     
+    def no_error(self):
+        """set error and warning maintenance request to None
+        """
+        self.error_maintenance_request = None
+        self.warning_maintenance_request = None
+
     def install_dependencies(self):
         """
             install dependencies needed to do all tests, as python or shell programs
