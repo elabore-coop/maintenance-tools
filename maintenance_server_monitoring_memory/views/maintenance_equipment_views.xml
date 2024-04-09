@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="equipment_view_form_server_inherit" model="ir.ui.view">
+        <field name="name">equipment.form.server.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form" />
+        <field name="arch" type="xml">            
+            <group name="monitoring_test_result" position="inside">                
+                <field name="available_memory_percent" />    
+            </group>            
+        </field>
+    </record>
+
+
+    <record id="equipment_view_tree_server_inherit" model="ir.ui.view">
+        <field name="name">equipment.tree.server.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='enable_monitoring']" position="after">                 
+                <field name="available_memory_percent" optional="hide" />    
+            </xpath>
+        </field>
+    </record>
+</odoo>

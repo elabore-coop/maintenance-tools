@@ -9,13 +9,10 @@
                 <page name="monitoring" string="Monitoring">                    
                     <group name="monitoring_test" string="Test">
                         <field name="enable_monitoring" />
-                        <field name="last_monitoring_test_date" />
-                        <field name="ping_ok" />  
-                        <field name="ssh_ok" />  
-                        <field name="available_memory_percent" />    
-                        <field name="used_disk_space" />    
+                        <field name="last_monitoring_test_date" />                        
                         <button name="monitoring_test" type="object" string="Test" />
                     </group>
+                    <group name="monitoring_test_result" />
                     <group name="monitoring_log" string="Log">
                         <field name="log" />
                     </group>
@@ -31,11 +28,7 @@
         <field name="inherit_id" ref="maintenance.hr_equipment_view_tree" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after"> 
-                <field name="enable_monitoring" />
-                <field name="ping_ok" optional="hide" />  
-                <field name="ssh_ok" />  
-                <field name="available_memory_percent" optional="hide" />    
-                <field name="used_disk_space" optional="hide" />    
+                <field name="enable_monitoring" />                
             </xpath>
         </field>
     </record>

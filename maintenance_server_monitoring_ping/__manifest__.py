@@ -22,7 +22,7 @@
     },
     # always loaded
     "data": [        
-         
+         "views/maintenance_equipment_views.xml",        
     ],
     # only loaded in demonstration mode
     "demo": [],
