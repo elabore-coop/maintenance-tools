@@ -186,6 +186,10 @@ class MaintenanceEquipment(models.Model):
             new_log = new_log.replace("\n","<br />") # log field is HTML, so format lines 
             equipment.log = f'{new_log}<br />{equipment.log}'[:LOG_LIMIT] #limit logs 
 
+            #Create maintenance request only if monitoring is enabled
+            if not equipment.enable_monitoring:
+                return
+
             # if error create maintenance request
             error = warning =False
             if any(test.error == test.ERROR for test in tests):
@@ -228,9 +232,10 @@ class MaintenanceEquipment(models.Model):
                 MonitoringTest: representing current test with result=0 if not error
         """        
         monitoring_test = self.MonitoringTest("install dependencies")
-        if "ping3" in sys.modules:
+        try:
+            import ping3
             return monitoring_test.test_ok(0, "ping3 already installed")            
-        else:            
+        except ImportError:        
             try:                
                 command = ['pip3','install',"ping3==4.0.5"]
                 response = subprocess.call(command) # run "pip install ping3" command
