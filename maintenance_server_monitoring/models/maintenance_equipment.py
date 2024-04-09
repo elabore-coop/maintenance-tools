@@ -6,31 +6,20 @@ from io import StringIO
 
 LOG_LIMIT = 100000
 
-AVAILABLE_MEMORY_PERCENT_COMMAND = "free | grep Mem | awk '{print $3/$2 * 100.0}'"
-MIN_AVAILABLE_MEMORY_PERCENT_WARNING = 20
-MIN_AVAILABLE_MEMORY_PERCENT_ERROR = 5
-
-USED_DISK_SPACE_COMMAND = "df /srv -h | tail -n +2 | sed -r 's/ +/ /g' | cut -f 5 -d ' ' | cut -f 1 -d %"
-MAX_USED_DISK_SPACE_WARNING = 70
-MAX_USED_DISK_SPACE_ERROR = 90
-
-MAX_PING_MS_WARNING = 1000
-MAX_PING_MS_ERROR = 5000
 
 
 """
 if you want to add a new test : 
+    * create new module named maintenance_server_monitoring_{your_test}
     * add new field to MaintenanceEquipment (named {fieldname} below)
     * add a new function named test_{fieldname} which return a filled MonitoringTest class with :
         -> log = logs you want to appear in logs
         -> result = value which will be set to {fieldname}
         -> error = MonitoringTest.ERROR or MonitoringTest.WARNING to generate maintenance request
         ** Note you can use test_ok, test_warning, and test_error functions to simplify code **
-    * add requirements if necessary in install_dependencies function
-    * call your function in monitoring_test() with a simple launch_test({fieldname}, *args)
-        if needed, *args can be passed by parameters to your test function
+    * inherit get_tests() to reference your field {fieldname}
 
-
+be inspired by maintenance_server_monitoring_ping for exemple
 """
 
 
@@ -40,12 +29,6 @@ class MaintenanceEquipment(models.Model):
     last_monitoring_test_date = fields.Datetime('Date of last monitoring test', readonly=True)
 
     enable_monitoring = fields.Boolean('Monitoring enabled', help="If enabled, cron will test this equipment")
-
-    #tests
-    ping_ok = fields.Boolean("Ping ok", readonly=True)
-    available_memory_percent = fields.Float('Percent of available memory', readonly=True)
-    used_disk_space = fields.Float('Percent of used disk space', readonly=True)
-    ssh_ok = fields.Boolean("SSH ok", readonly=True)
 
     #log
     log = fields.Html("Log", readonly=True)
@@ -126,10 +109,8 @@ class MaintenanceEquipment(models.Model):
         """cron launch test on all equipments
         """
         self.search([("enable_monitoring","=",True)]).monitoring_test()
-    
-    def monitoring_test(self):    
 
-        def launch_test(attribute, *test_function_args):
+    def launch_test(self, attribute, log, *test_function_args):
             """run test function with name = test_[attribute]
             associate result of test to equipment
             write logs of test
@@ -141,13 +122,21 @@ class MaintenanceEquipment(models.Model):
             Returns:
                 MonitoringTest: returned by test function
             """
-            test_function = getattr(equipment,"test_"+attribute)
+            test_function = getattr(self,"test_"+attribute)
             test = test_function(*test_function_args)            
-            setattr(equipment, attribute, test.result)
-            log.write(test.log)            
-            tests.append(test)
+            setattr(self, attribute, test.result)
+            log.write(test.log)                        
             return test
+    
+    def get_tests(self):
+        """function to inherit in sub-modules        
 
+        Returns:
+            array[string]: names of fields to test
+        """
+        return []
+    
+    def monitoring_test(self):    
 
         for equipment in self:
             
@@ -155,27 +144,12 @@ class MaintenanceEquipment(models.Model):
             log = StringIO() 
 
             # array of all tests
-            tests = []
+            tests_results = []
 
-            # install dependencies and log it
-            log.write(equipment.install_dependencies().log) # launch_test is not used, only logs are necessary
-
-            # run ping test
-            launch_test("ping_ok")
-
-            # SSH dependant test
-            ssh = launch_test("ssh_ok").result
-                
+            # run all tests referenced in get_tests and save result
+            for test in self.get_tests():
+                tests_results.append(equipment.launch_test(test, log))
             
-            if ssh:
-                # test available memory
-                launch_test("available_memory_percent", ssh)         
-
-                # test disk usage
-                launch_test("used_disk_space", ssh)
-            else:
-                equipment.available_memory_percent = -1 #set -1 by convention if error
-                equipment.used_disk_space = -1 #set -1 by convention if error         
 
             # set test date
             equipment.last_monitoring_test_date = fields.Datetime.now()
@@ -192,9 +166,9 @@ class MaintenanceEquipment(models.Model):
 
             # if error create maintenance request
             error = warning =False
-            if any(test.error == test.ERROR for test in tests):
+            if any(test.error == test.ERROR for test in tests_results):
                 error = True # if any arror in tests
-            elif any(test.error == test.WARNING for test in tests):
+            elif any(test.error == test.WARNING for test in tests_results):
                 warning = True # if any warning in tests
 
             if error or warning:                
@@ -241,156 +215,12 @@ class MaintenanceEquipment(models.Model):
         """
         self.error_maintenance_request = None
         self.warning_maintenance_request = None
-
-    def install_dependencies(self):
-        """
-            install dependencies needed to do all tests, as python or shell programs
-
-            Returns:
-                MonitoringTest: representing current test with result=0 if not error
-        """        
-        monitoring_test = self.MonitoringTest("install dependencies")
-        try:
-            import ping3
-            return monitoring_test.test_ok(0, "ping3 already installed")            
-        except ImportError:        
-            try:                
-                command = ['pip3','install',"ping3==4.0.5"]
-                response = subprocess.call(command) # run "pip install ping3" command
-                if response == 0:
-                    return monitoring_test.test_ok(0, "ping3 installation successful")  
-                else:
-                    monitoring_test.test_error(f"ping3 : unable to install : response = {response}")          
-            except Exception as e:                
-                return monitoring_test.test_error(f"ping3 : unable to install : {e}")
-            
-    def test_ssh_ok(self):    
-        """
-            test ssh with maintenance_server_ssh module
-
-            Returns:
-                MonitoringTest: representing current test with :
-                    * result = False if error
-                    * result = ssh connection if no error
-                    * error = MonitoringTest.ERROR if connection failed
-                    * log file
-        """   
-        test = self.MonitoringTest("SSH OK")         
-        try:
-            # SSH connection ok : set ssh connection in result, converted in boolean (True) when set in ssh_ok field
-            return test.test_ok(self.get_ssh_connection(), "SSH Connection OK") #ssh connection given by maintenance_server_ssh module            
-        except Exception as e:
-            # SSH connection failed
-            return test.test_error(False, f"{fields.Datetime.now()} > SSH > connection failed {e}\n")
+        
             
     
-    def test_available_memory_percent(self, ssh):    
-        """
-            test available memory with a bash command called by ssh
-
-            Args:
-                ssh (paramiko.SSHClient): ssh client
-
-            Returns:
-                MonitoringTest: representing current test with :
-                    * result = -2 if error
-                    * result = percent of available memory if no error
-                    * error defined with MonitoringTest.ERROR or MonitoringTest.WARNING depending on result comparaison 
-                        with MIN_AVAILABLE_MEMORY_PERCENT_WARNING and MIN_AVAILABLE_MEMORY_PERCENT_ERROR
-                    * log file
-        """      
-        try:      
-            test = self.MonitoringTest("Available memory percent")      
-            _stdin, stdout, _stderr = ssh.exec_command(AVAILABLE_MEMORY_PERCENT_COMMAND)
-            available_memory_percent = float(stdout.read().decode())
-            if available_memory_percent > MIN_AVAILABLE_MEMORY_PERCENT_WARNING:                
-                return test.test_ok(available_memory_percent, f"{available_memory_percent}% available")
-            elif available_memory_percent > MIN_AVAILABLE_MEMORY_PERCENT_ERROR: 
-                # memory between warning and error step
-                return test.test_warning(available_memory_percent, f"{available_memory_percent}% available (<{MIN_AVAILABLE_MEMORY_PERCENT_WARNING})")                
-            else:
-                # memory available lower than error step
-                return test.test_error(available_memory_percent, f"{available_memory_percent}% available (<{MIN_AVAILABLE_MEMORY_PERCENT_ERROR})")
-        except Exception as e:
-            return test.test_error(-2, f"{e}")
-        
-
-        
-    def test_used_disk_space(self, ssh):        
-        """
-            test Used disk space with a bash command called by ssh
-
-            Args:
-                ssh (paramiko.SSHClient): ssh client
-
-            Returns:
-                MonitoringTest: representing current test with :
-                    * result = -2 if error
-                    * result = percent of Used disk space if no error
-                    * error defined with MonitoringTest.ERROR or MonitoringTest.WARNING depending on result comparaison 
-                        with MAX_USED_DISK_SPACE_WARNING and MAX_USED_DISK_SPACE_ERROR
-                    * log file
-        """      
-        try:
-            test = self.MonitoringTest("Used disk space")      
-            _stdin, stdout, _stderr = ssh.exec_command(USED_DISK_SPACE_COMMAND)
-            used_disk_space = float(stdout.read().decode())                    
-            if used_disk_space < MAX_USED_DISK_SPACE_WARNING:
-                return test.test_ok(used_disk_space, f"{used_disk_space}% used")                
-            elif used_disk_space < MAX_USED_DISK_SPACE_ERROR:
-                # disk usage between WARNING and ERROR steps
-                return test.test_warning(used_disk_space, f"{used_disk_space}% used (>{MAX_USED_DISK_SPACE_WARNING})")                
-            else:
-                # disk usage higher than ERROR steps
-                return test.test_error(used_disk_space, f"{used_disk_space}% used (>{MAX_USED_DISK_SPACE_ERROR})")                
-                                
-        except Exception as e:
-            return test.test_error(-2, f"{e}")                
-    
-    
-    def test_ping_ok(self):
-        """
-            test PING with ping3 library
-
-            Returns:
-                MonitoringTest: representing current test with :
-                    * result = False if error
-                    * result = True if no error
-                    * error defined with MonitoringTest.ERROR or MonitoringTest.WARNING depending on ping time comparaison 
-                        with MAX_PING_MS_WARNING and MAX_PING_MS_ERROR
-                    * log file
-        """   
-        test = self.MonitoringTest("Ping")        
-        try:               
-            from ping3 import ping
-        except Exception as e:
-            # unable to import ping3
-            return test.test_error(False, f"ping3 dependencie not satisfied : {e}")               
-        
-        hostname = self.server_domain
-        if not hostname:
-            # equipment host name not filled 
-            return test.test_error(False, f"host name seems empty !")             
-
-        try:
-            r = ping(hostname)
-        except Exception as e: 
-            # Any problem when call ping
-            return test.test_error(False, f"unable to call ping ! > {e}")             
-           
-        if r:
-            test.result = True
-            ping_ms = int(r*1000)
-            if ping_ms < MAX_PING_MS_WARNING:     
-                # ping OK           
-                return test.test_ok(True, f"PING OK in {ping_ms} ms")             
-            elif ping_ms < MAX_PING_MS_ERROR:                
-                # ping result between WARNING and ERROR => WARNING
-                return test.test_warning(True, f"PING OK in {ping_ms}ms (> {MAX_PING_MS_WARNING})")             
-            else:
-                # ping result higher than ERROR => ERROR
-                return test.test_error(False, f"PING OK in {ping_ms}ms (> {MAX_PING_MS_ERROR})")                             
-        else:  
-            return test.test_error(False, "PING FAILED")                              
             
-        
+    
+                 
+    
+    
+    
