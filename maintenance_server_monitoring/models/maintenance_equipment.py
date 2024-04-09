@@ -210,7 +210,7 @@ class MaintenanceEquipment(models.Model):
                     or (warning and not existing_not_done_warning_request and not existing_not_done_error_request):
                     equipment.create_maintenance_request(self.MonitoringTest.ERROR if error else self.MonitoringTest.WARNING, new_log)            
             else:                
-                self.no_error()
+                equipment.no_error()
 
 
     def create_maintenance_request(self, error_level, description):
