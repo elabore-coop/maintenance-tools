@@ -110,22 +110,22 @@ class MaintenanceEquipment(models.Model):
         """
         self.search([("enable_monitoring","=",True)]).monitoring_test()
 
-    def launch_test(self, attribute, log, *test_function_args):
+    def launch_test(self, field_name, *test_function_args):
             """run test function with name = test_[attribute]
             associate result of test to equipment
             write logs of test
 
 
             Args:
-                attribute (string): attribute of MaintenanceEquipment we want to test
+                attribute_name (string): attribute of MaintenanceEquipment we want to test
+                *test_function_args = optionnal args to pass to function (unused for the moment)
 
             Returns:
                 MonitoringTest: returned by test function
             """
-            test_function = getattr(self,"test_"+attribute)
+            test_function = getattr(self,"test_"+field_name)
             test = test_function(*test_function_args)            
-            setattr(self, attribute, test.result)
-            log.write(test.log)                        
+            setattr(self, field_name, test.result)            
             return test
     
     def get_tests(self):
@@ -138,26 +138,21 @@ class MaintenanceEquipment(models.Model):
     
     def monitoring_test(self):    
 
-        for equipment in self:
-            
-            # we use StingIO instead of string to use mutable object 
-            log = StringIO() 
-
+        for equipment in self:                        
             # array of all tests
             tests_results = []
 
             # run all tests referenced in get_tests and save result
             for test in self.get_tests():
-                tests_results.append(equipment.launch_test(test, log))
-            
+                tests_results.append(equipment.launch_test(test))
 
             # set test date
             equipment.last_monitoring_test_date = fields.Datetime.now()
             
             # write logs
-            log.seek(0) #log is a StringIO so seek to beginning before read
-            new_log = f'📣 {fields.Datetime.now()}\n{log.read()}\n'   
-            new_log = new_log.replace("\n","<br />") # log field is HTML, so format lines 
+            #new logs are current datetime + join of test results logs
+            new_log = f'📣 {fields.Datetime.now()}\n{"".join([tests_result.log for tests_result in tests_results])}\n'.replace("\n","<br />")
+            #add new logs to the beginning of equipment log
             equipment.log = f'{new_log}<br />{equipment.log}'[:LOG_LIMIT] #limit logs 
 
             #Create maintenance request only if monitoring is enabled

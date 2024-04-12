@@ -64,7 +64,7 @@ class MaintenanceEquipment(models.Model):
                 return test.test_warning(True, f"PING OK in {ping_ms}ms (> {MAX_PING_MS_WARNING})")             
             else:
                 # ping result higher than ERROR => ERROR
-                return test.test_error(False, f"PING OK in {ping_ms}ms (> {MAX_PING_MS_ERROR})")                             
+                return test.test_error(True, f"PING OK in {ping_ms}ms (> {MAX_PING_MS_ERROR})")                             
         else:  
             return test.test_error(False, "PING FAILED")                              
             

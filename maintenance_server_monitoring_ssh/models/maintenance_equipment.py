@@ -21,8 +21,7 @@ class MaintenanceEquipment(models.Model):
                     * error = MonitoringTest.ERROR if connection failed
                     * log file
         """   
-        test = self.MonitoringTest("SSH OK")    
-        self.get_ssh_connection()
+        test = self.MonitoringTest("SSH OK")            
         try:
             # SSH connection ok : set ssh connection in result, converted in boolean (True) when set in ssh_ok field
             return test.test_ok(self.get_ssh_connection(), "SSH Connection OK") #ssh connection given by maintenance_server_ssh module            
