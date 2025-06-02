@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="create_maintenance_requests_wizard_view_form" model="ir.ui.view">
+        <field name="name">create.maintenance.requests.wizard.view.form</field>
+        <field name="model">create.maintenance.requests.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create maintenance requests">
+                <sheet>
+                    <group name="name">
+                        <field name="task_id" readonly="1" />
+                        <field name="name" />
+		    </group>
+		    <group name="domain" string="Equipments targetted">
+		        <field
+			    name="equipment_domain"
+			    widget="domain"
+                            options='{"model": "maintenance.equipment"}'
+			/>
+		    </group>
+		    <group name="data" string="Requests data">
+			<field name="user_id" />
+			<field name="maintenance_type" />
+			<field name="priority" />
+			<field name="duration" />
+			<field name="schedule_date" />
+			<field name="description" />
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Create" name="create_maintenance_requests" type="object"
+                        class="btn-primary" />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record
+        id="action_create_maintenance_requests_wizard" model="ir.actions.act_window">
+        <field name="name">Create Maintenance Requests</field>
+        <field name="res_model">create.maintenance.requests.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="create_maintenance_requests_wizard_view_form" />
+        <field name="target">new</field>
+    </record>
+
+    <record id="task_wizard_action_create_maintenance_requests" model="ir.actions.server">
+            <field name="name">Create maintenance requests</field>
+            <field name="model_id" ref="maintenance_create_requests_from_project_task.model_create_maintenance_requests_wizard"/>
+            <field name="binding_model_id" ref="project.model_project_task"/>
+            <field name="state">code</field>
+            <field name="code">action = model.action_open_wizard()</field>
+        </record>
+</odoo>
