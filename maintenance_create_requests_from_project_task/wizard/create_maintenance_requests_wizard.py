@@ -9,6 +9,15 @@ class CreateMaintenanceRequestsWizard(models.TransientModel):
     def _default_task_id(self):
         return self.env["project.task"].browse(self._context.get("active_ids"))
 
+    @api.model
+    def _default_equipment_model(self):
+        default_domain = []
+        task_id = self.env["project.task"].browse(self._context.get("active_ids"))
+        project_equipements = self.env["maintenance.equipment"].search([("project_id", "=", task_id.project_id.id)])
+        if project_equipements:
+            equipment_ids_list = [x.id for x in project_equipements]
+            default_domain.append(("id", "in", equipment_ids_list))
+        return default_domain
 
     name = fields.Char("Title", required=True)
     user_id = fields.Many2one('res.users', string='Technician')
@@ -18,7 +27,7 @@ class CreateMaintenanceRequestsWizard(models.TransientModel):
     duration = fields.Float(help="Duration in hours.")
     description = fields.Html('Description')
 
-    equipment_domain = fields.Char("Equipment Domain")
+    equipment_domain = fields.Char("Equipment Domain", default=_default_equipment_model)
 
     task_id = fields.Many2one(
         "project.task",
