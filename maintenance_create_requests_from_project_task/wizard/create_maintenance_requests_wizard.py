@@ -84,6 +84,8 @@ class CreateMaintenanceRequestsWizard(models.TransientModel):
         for equipment in equipment_list:
             vals = common_vals.copy()
             vals["equipment_id"] = equipment.id
+            if equipment.maintenance_team_id:
+                vals["maintenance_team_id"] = equipment.maintenance_team_id.id
             vals_list.append(vals)
 
         return vals_list
